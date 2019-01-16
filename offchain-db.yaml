@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: offchain-db
+  labels:
+    app: offchain-db
+spec:
+  ports:
+  - port: 6984
+    targetPort: 6984
+  selector:
+    app: offchain-db
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: offchain-db
+  name: offchain-db
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: offchain-db
+    spec:
+      containers:
+      - env:
+        - name: COUCHDB_LUKS_PASSPHRASE
+          valueFrom:
+            secretKeyRef:
+              key: COUCHDB_LUKS_PASSPHRASE
+              name: offchain-db-env
+        image: couchdb-crypto:2.1.1
+        imagePullPolicy: Never
+        securityContext:
+          privileged: true
+        command: [ "bash", "-c", "/tmp/data/init.sh" ]
+        name: offchain-db
+        ports:
+        - containerPort: 6984
+          protocol: TCP
+        volumeMounts:
+        - name: script-volume
+          mountPath: /tmp/data
+        - name: offchain-db-crypto
+          mountPath: /dev/offchain-db-crypto
+      volumes:
+      - name: script-volume
+        hostPath:
+          path: .../data
+          type: Directory
+      - name: offchain-db-crypto
+        hostPath:
+          path: /dev/vg1/offchain-db-crypto
+          type: BlockDevice
