@@ -29,9 +29,11 @@ to mount the cleartext device on /couchdb.  Finally, init.sh executes:
 /opt/couchdb/bin/couchdb
 ```
 
-to start CouchDB.
+to start CouchDB.  Note that the offchain-db deployment needs to have:
 
+```
+        securityContext:
+          privileged: true
+```
 
-          
-          
-
+in its YAML to specify that it is allowed to run the `dmsetup`, `cryptsetup`, and `mount` commands.
